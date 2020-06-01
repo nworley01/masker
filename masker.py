@@ -9,6 +9,11 @@ from kivy.graphics.tesselator import Tesselator
 
 Window.size = (720, 480)
 
+'''TODO:
+1. Create iterator object containing all image file names to be annotated
+2. save image to memory and read with numpy to save as an array
+3. save files using automatic naming based on input image name'''
+
 class MaskPoint(Widget):
     points = []
     folder = ''
