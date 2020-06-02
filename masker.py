@@ -4,21 +4,24 @@ from kivy.uix.widget import Widget
 from kivy.uix.image import Image
 from kivy.graphics import Line, Color, Mesh
 from kivy.config import Config
-
 from kivy.graphics.tesselator import Tesselator
+from os import listdir
+from os.path import isfile, join
 
 Window.size = (720, 480)
 
 '''TODO:
-1. Create iterator object containing all image file names to be annotated
-2. save image to memory and read with numpy to save as an array
-3. save files using automatic naming based on input image name'''
+    save image to memory and read with numpy to save as an array
+'''
 
 class MaskPoint(Widget):
     points = []
-    folder = ''
-    img_source = 'img1_34.jpg'
-    img_iter = iter(['img1_34.jpg','img1_34.jpg'])
+    dir = 'images/to_annotate'
+    img_name = None
+    img_source = None
+    img_files = [f for f in listdir(dir) if f[-3:] == 'jpg']
+    img_iter = iter(img_files)
+    print(img_files)
 
     def __init__(self):
         super(MaskPoint, self).__init__()
@@ -53,7 +56,6 @@ class MaskPoint(Widget):
 
     def make_mask(self):
         if len(self.points)/2 > 3:
-            print('a')
             self.canvas.clear()
             self.build_mesh()
             self.save()
@@ -61,16 +63,18 @@ class MaskPoint(Widget):
             print('More points needed to build mask')
 
     def next_image(self, img_iter):
+        self.points = []
         try:
-            img_source = next(img_iter)
+            self.img_name = next(img_iter)
+            self.img_source = 'images/to_annotate/%s'%self.img_name
             self.draw_image()
-            self.parent.title = "Masker: %s" % img_source
+            self.parent.title = "Masker: %s" % self.img_source
         except StopIteration:
             print('Out of images.')
 
     def draw_image(self):
         with self.canvas:
-            self.wimg = Image(source='img1_34.jpg', size=(720,480))
+            self.wimg = Image(source=self.img_source, size=(720,480))
 
     def close_line_mesh(self):
         if len(self.points)/2 > 3:
@@ -91,7 +95,7 @@ class MaskPoint(Widget):
                                      mode="triangle_fan"))
 
     def save(self):
-        self.export_to_png('file.jpg')
+        self.export_to_png('images/complete/%s_mask.jpg'%self.img_name[:-4])
 
     def back_space(self):
         if len(self.points)/2 > 2:
