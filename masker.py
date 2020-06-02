@@ -10,10 +10,6 @@ from os.path import isfile, join
 
 Window.size = (720, 480)
 
-'''TODO:
-    save image to memory and read with numpy to save as an array
-'''
-
 class MaskPoint(Widget):
     points = []
     dir = 'images/to_annotate'
@@ -21,7 +17,6 @@ class MaskPoint(Widget):
     img_source = None
     img_files = [f for f in listdir(dir) if f[-3:] == 'jpg']
     img_iter = iter(img_files)
-    print(img_files)
 
     def __init__(self):
         super(MaskPoint, self).__init__()
@@ -40,19 +35,12 @@ class MaskPoint(Widget):
         print('The key', keycode, "has been pressed")
         if keycode[1] == 'b': #backspace
             self.back_space()
-        if keycode[1] == 'c': #close shape
-            self.close_line_mesh()
-        if keycode[1] == 's': #save mask
-            self.save()
         if keycode[1] == 'n': #next image
             self.next_image(self.img_iter)
         if keycode[1] == 'm': #close mask and save
             self.make_mask()
-        if keycode[1] == 'x':
-            self.clear_canvas()
-
-    def clear_canvas(self):
-        self.canvas.clear()
+        if keycode[1] == 'c':
+            self.close_line_mesh()
 
     def make_mask(self):
         if len(self.points)/2 > 3:
@@ -109,6 +97,7 @@ class MaskPoint(Widget):
 
     def on_touch_move(self, touch):
         x=1
+
     def on_touch_up(self,touch):
         self.update()
 
