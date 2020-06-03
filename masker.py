@@ -1,16 +1,29 @@
-from kivy.app import App
+import os
+os.environ["KIVY_WINDOW"]="sdl2"
+os.environ['KIVY_GL_BACKEND']='gl'
+
+from kivy.config import Config
+Config.set('graphics', 'resizable', False)
+#Config.set('graphics', 'width', '720')
+#Config.set('graphics', 'height', '480')
+
 from kivy.core.window import Window
+Window.size = (1440,960)
+
+import kivy.graphics
+from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.image import Image
-from kivy.graphics import Line, Color, Mesh
-from kivy.config import Config
+from kivy.graphics import (Line, Color, Mesh, Rectangle,
+                           Canvas, Translate, Fbo,
+                           ClearColor, ClearBuffers, Scale)
+
 from kivy.graphics.tesselator import Tesselator
 from os import listdir
 from os.path import isfile, join
 
-Window.size = (720, 480)
-
 class MaskPoint(Widget):
+
     points = []
     dir = 'images/to_annotate'
     img_name = None
@@ -46,7 +59,7 @@ class MaskPoint(Widget):
         if len(self.points)/2 > 3:
             self.canvas.clear()
             self.build_mesh()
-            self.save()
+            self.export_scaled_png()
         else:
             print('More points needed to build mask')
 
@@ -56,13 +69,15 @@ class MaskPoint(Widget):
             self.img_name = next(img_iter)
             self.img_source = 'images/to_annotate/%s'%self.img_name
             self.draw_image()
-            self.parent.title = "Masker: %s" % self.img_source
+            App.title = "Masker: %s" % self.img_source
         except StopIteration:
             print('Out of images.')
 
     def draw_image(self):
         with self.canvas:
-            self.wimg = Image(source=self.img_source, size=(720,480))
+            self.wimg = Image(source=self.img_source, size = Window.size, allow_stretch=True)
+            print(self.size)
+            print(Window.size)
 
     def close_line_mesh(self):
         if len(self.points)/2 > 3:
@@ -82,8 +97,22 @@ class MaskPoint(Widget):
                                      indices=indices,
                                      mode="triangle_fan"))
 
-    def save(self):
-        self.export_to_png('images/complete/%s_mask.jpg'%self.img_name[:-4])
+    def export_scaled_png(self):
+        re_size = (720, 480)
+        image_scale = 720/self.width
+
+        fbo = Fbo(size=re_size, with_stencilbuffer=True)
+
+        with fbo:
+            ClearColor(0, 0, 0, 0)
+            ClearBuffers()
+            Scale(image_scale, -image_scale, image_scale)
+            Translate(-self.x, -self.y - self.height, 0)
+
+        fbo.add(self.canvas)
+        fbo.draw()
+        fbo.texture.save('images/complete/%s_mask.jpg'%self.img_name[:-4], flipped=False)
+        fbo.remove(self.canvas)
 
     def back_space(self):
         if len(self.points)/2 > 2:
