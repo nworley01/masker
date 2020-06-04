@@ -14,8 +14,8 @@ Annotate the image by left clicking points around the object in the image you wi
 Currently this application only supports annotation of a single class. Once you have finished
 outlining the object of interest, press M to close the shape, convert to a mask, and save to png.
 
-N - Navigate to the next image using
-B - Backspace (remove last point)
-C - Close shape
-M - Make mask (closes shape, black white, and saves)
-H - Help (toggles displaying this window)
+N - Navigate to the next image using /n
+B - Backspace (remove last point) /n
+C - Close shape /n
+M - Make mask (closes shape, black white, and saves) /n
+H - Help (toggles displaying this window) /n
