@@ -8,7 +8,7 @@ Config.set('graphics', 'resizable', False)
 #Config.set('graphics', 'height', '480')
 
 from kivy.core.window import Window
-Window.size = (1440,960)
+Window.size = (900,600)
 
 import kivy.graphics
 from kivy.app import App
@@ -26,6 +26,7 @@ class MaskPoint(Widget):
 
     points = []
     dir = 'images/to_annotate'
+    help = False
     img_name = None
     img_source = None
     img_files = [f for f in listdir(dir) if f[-3:] == 'jpg']
@@ -38,6 +39,8 @@ class MaskPoint(Widget):
         if self._keyboard.widget:
             pass
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self.show_help()
+        self.help = False
 
     def _keyboard_closed(self):
         print("my keyboard has been closed")
@@ -45,7 +48,7 @@ class MaskPoint(Widget):
         self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        print('The key', keycode, "has been pressed")
+        #print('The key', keycode, "has been pressed")
         if keycode[1] == 'b': #backspace
             self.back_space()
         if keycode[1] == 'n': #next image
@@ -54,9 +57,13 @@ class MaskPoint(Widget):
             self.make_mask()
         if keycode[1] == 'c':
             self.close_line_mesh()
+        if keycode[1] == 'h':
+            self.show_help()
 
     def make_mask(self):
-        if len(self.points)/2 > 3:
+        if self.help:
+            print("Exit help menu before saving mask")
+        elif len(self.points)/2 > 3:
             self.canvas.clear()
             self.build_mesh()
             self.export_scaled_png()
@@ -69,15 +76,18 @@ class MaskPoint(Widget):
             self.img_name = next(img_iter)
             self.img_source = 'images/to_annotate/%s'%self.img_name
             self.draw_image()
-            App.title = "Masker: %s" % self.img_source
+            print("Annotating %s" % self.img_source)
+            if self.help:
+                self.help = False
         except StopIteration:
             print('Out of images.')
 
+
     def draw_image(self):
+        self.canvas.clear()
         with self.canvas:
             self.wimg = Image(source=self.img_source, size = Window.size, allow_stretch=True)
-            print(self.size)
-            print(Window.size)
+
 
     def close_line_mesh(self):
         if len(self.points)/2 > 3:
@@ -122,12 +132,14 @@ class MaskPoint(Widget):
             self.points = []
 
     def on_touch_down(self, touch):
-        self.points += (touch.x,touch.y)
-
-    def on_touch_move(self, touch):
-        x=1
+        if self.help:
+            pass
+        else:
+            self.points += (touch.x,touch.y)
 
     def on_touch_up(self,touch):
+        if self.help:
+            self.help = False
         self.update()
 
     def update(self):
@@ -136,6 +148,15 @@ class MaskPoint(Widget):
         with self.canvas:
             Color(0, 0, 1.)
             Line(points=self.points, width=1)
+
+    def show_help(self):
+        if self.help:
+            self.update()
+            self.help = False
+        else:
+            with self.canvas:
+                self.wimg = Image(source='help_menu.png', size = Window.size, allow_stretch=True)
+            self.help = True
 
 class masker_app(App):
     def build(self):
