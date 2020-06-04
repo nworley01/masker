@@ -1,4 +1,4 @@
-# masker
+# Masker
 
 Masker is an application to help make mask annotations for image segmentation tasks using Python and Kivy
 
