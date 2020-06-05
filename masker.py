@@ -30,7 +30,8 @@ class MaskPoint(Widget):
     img_name = None
     img_source = None
     img_files = [f for f in listdir(dir) if f[-3:] == 'jpg']
-    img_iter = iter(img_files)
+    current_index = -1
+    total_images = len(img_files)
 
     def __init__(self):
         super(MaskPoint, self).__init__()
@@ -51,8 +52,10 @@ class MaskPoint(Widget):
         #print('The key', keycode, "has been pressed")
         if keycode[1] == 'b': #backspace
             self.back_space()
-        if keycode[1] == 'n': #next image
-            self.next_image(self.img_iter)
+        if keycode[1] == 'right': #next image
+            self.image_next()
+        if keycode[1] == 'left': #next image
+            self.image_previous()
         if keycode[1] == 'm': #close mask and save
             self.make_mask()
         if keycode[1] == 'c':
@@ -62,32 +65,45 @@ class MaskPoint(Widget):
 
     def make_mask(self):
         if self.help:
-            print("Exit help menu before saving mask")
+            print("Exit help menu before saving mask.")
         elif len(self.points)/2 > 3:
             self.canvas.clear()
             self.build_mesh()
             self.export_scaled_png()
         else:
-            print('More points needed to build mask')
+            print('More points needed to build mask.')
 
-    def next_image(self, img_iter):
+    def image_next(self):
         self.points = []
-        try:
-            self.img_name = next(img_iter)
+        if self.current_index < self.total_images - 1:
+            self.current_index +=1
+            self.img_name = self.img_files[self.current_index]
+            self.img_source = 'images/to_annotate/%s'%self.img_name
+            print(self.img_source)
+            self.draw_image()
+            print("Annotating %s" % self.img_source)
+            if self.help:
+                self.help = False
+        else:
+            print('Out of images.')
+
+    def image_previous(self):
+        self.points = []
+        if self.current_index > 1:
+            self.current_index -=1
+            self.img_name = self.img_files[self.current_index]
             self.img_source = 'images/to_annotate/%s'%self.img_name
             self.draw_image()
             print("Annotating %s" % self.img_source)
             if self.help:
                 self.help = False
-        except StopIteration:
-            print('Out of images.')
-
+        else:
+            print('You are already at the first image.')
 
     def draw_image(self):
         self.canvas.clear()
         with self.canvas:
             self.wimg = Image(source=self.img_source, size = Window.size, allow_stretch=True)
-
 
     def close_line_mesh(self):
         if len(self.points)/2 > 3:
