@@ -1,6 +1,11 @@
 import os
-os.environ["KIVY_WINDOW"]="sdl2"
-os.environ['KIVY_GL_BACKEND']='gl'
+from sys import platform
+if platform == 'darwin':
+    os.environ["KIVY_WINDOW"]="sdl2"
+    os.environ['KIVY_GL_BACKEND']='gl'
+elif platform == "win32":
+    pass
+
 
 from kivy.config import Config
 Config.set('graphics', 'resizable', False)
