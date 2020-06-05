@@ -1,9 +1,15 @@
 import os
-os.environ["KIVY_WINDOW"]="sdl2"
-os.environ['KIVY_GL_BACKEND']='gl'
+from sys import platform
+if platform == 'darwin':
+    os.environ["KIVY_WINDOW"]="sdl2"
+    os.environ['KIVY_GL_BACKEND']='gl'
+elif platform == "win32":
+    pass
+
 
 from kivy.config import Config
 Config.set('graphics', 'resizable', False)
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 #Config.set('graphics', 'width', '720')
 #Config.set('graphics', 'height', '480')
 
@@ -89,7 +95,7 @@ class MaskPoint(Widget):
 
     def image_previous(self):
         self.points = []
-        if self.current_index > 1:
+        if self.current_index > 0:
             self.current_index -=1
             self.img_name = self.img_files[self.current_index]
             self.img_source = 'images/to_annotate/%s'%self.img_name
@@ -148,15 +154,17 @@ class MaskPoint(Widget):
             self.points = []
 
     def on_touch_down(self, touch):
-        if self.help:
-            pass
-        else:
-            self.points += (touch.x,touch.y)
+        if touch.button == 'left':
+            if self.help:
+                pass
+            else:
+                self.points += (touch.x,touch.y)
 
     def on_touch_up(self,touch):
-        if self.help:
-            self.help = False
-        self.update()
+        if touch.button == 'left':
+            if self.help:
+                self.help = False
+            self.update()
 
     def update(self):
         self.canvas.clear()
